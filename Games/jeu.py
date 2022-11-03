@@ -60,50 +60,96 @@ class Train:
     def __init__(self, dir) -> None:
         """Constructeur"""
 
+        self.dir = "Test"
+        
+        self.taille = (230, 30)
+        
         if dir == "D":
-            self.pos = [0, 79]
+            self.pos = [(0 - self.taille[0]), 79]
         elif dir == "G":
-            self.pos = [1080, 0]
+            self.pos = [1350, 113]
         else:
             pass
-        
-        self.dir = "Sans Voyageurs"
 
         if self.dir == "Sans Voyageurs":
             self.voyageurs = 0
         else:
-            self.voyageurs = random.randint(0, 300)
-        
-        self.taille = (130, 30)
+            self.voyageurs = random.randint(1, 300)
+
+        self.run = True
 
         # Self.train = (couleur, position, taille, nb de voyageurs, direction (jeu), direction (écran))
-        self.train = [Rouge, self.pos, self.taille, self.voyageurs, self.dir, dir]
+        self.train = [Rouge, self.pos, self.taille, self.voyageurs, self.dir, dir, self.run]
         
 
 
     def deplacer(self):
         # self.pos = [self.pos[0]+ 5, self.pos[1]]
         # print(self.pos)
-        if self.train[1][0] != 510:
-            self.train[1][0] += 0.25
-        else:
-            pygame.time.wait(2000)
-            self.train[1][0] += 0.25
 
+        if self.train[6]:
+            if self.train[5] == "D":
+                if self.train[1][0] != 510:
+                    self.train[1][0] += 0.25
+                else:
+                    self.train[6] = False
+                    self.train[1][0] += 0.25
+                    self.tmps_arret = pygame.time.get_ticks() + random.randint(5000, 20000)
+                
+            elif self.train[5] == "G":
+                if self.train[1][0] != 510:
+                    self.train[1][0] -= 0.25
+                else:
+                    self.train[6] = False
+                    self.train[1][0] -= 0.25
+                    self.tmps_arret = pygame.time.get_ticks() + random.randint(5000, 15000)
+
+        else:
+            if self.tmps_arret <= pygame.time.get_ticks():
+                self.train[6] = True
+
+
+    
+    def Affiche(self):
+
+        # Affichage du train
+        pygame.draw.rect(screen, self.train[0], (self.train[1], self.train[2]), 0, 5)
+
+class signalisation:
+    """gestion et affichage du systèpme de signalisation dans le jeu"""
+
+
+
+
+class Ecran:
+    """Affichage de l'interface sur l'écran"""
+
+    def __init__(self) -> None:
+        pass
 
     def Affiche(self):
         """Affiche les éléments de l'interface"""
 
+        # Aiguillage
+        pygame.draw.polygon(screen, Rouge, ((300, 82),  (360, 140), (386, 140), (326, 82)))
         # Affichage rails
         pygame.draw.rect(screen, Gris, ((0, 82), (1350, 26)))
+        pygame.draw.rect(screen, Gris, ((0, 115), (1350, 26)))
         # Affichage du quai
-        pygame.draw.rect(screen, Gris_clair, ((500, 32), (150, 45)))
-        # Affichage du train
-        pygame.draw.rect(screen, self.train[0], (self.train[1], self.train[2]))
+        pygame.draw.rect(screen, Gris_clair, ((500, 32), (250, 45)))
+        pygame.draw.rect(screen, Gris_clair, ((500, 147), (250, 45)))
+        
+
+
 
 def main():
 
     run = False
+    display = True
+    HUD = Ecran()
+    train = Train("D")
+    train2 = Train("G")
+
     while True:
 
         
@@ -124,13 +170,16 @@ def main():
             if event.type == pygame.KEYDOWN:
 
                 if event.key == pygame.K_d:
-                    train = Train("D")
                     # tmps = pygame.time.get_ticks()
                     run = not run
 
         if run:
-            train.deplacer()   
+            train.deplacer()  
+            train2.deplacer() 
+        if display:
+            HUD.Affiche()
             train.Affiche()
+            train2.Affiche()
         
         pygame.display.flip()  # Affichage Final
 
