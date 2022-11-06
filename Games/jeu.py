@@ -92,7 +92,6 @@ class Train:
 
         if self.train[6]:
             if self.train[5] == "D":
-                print(self.train[1][0])
                 if self.train[1][0] != 515:
                     self.train[1][0] += 0.5
                 else:
@@ -122,7 +121,6 @@ class Train:
                 # self.train[1][0] += 0.25
                 return (True, 0)
             elif self.train[1][0] == (755 - self.taille[0]):
-                print("entre")
                 # self.train[1][0] += 0.25
                 return (True, 1)
             elif self.train[1][0] == (1080 - self.taille[0]):
@@ -375,10 +373,8 @@ def main():
         if run:
             test_droite = train_droite.detect_signal()
             if test_droite[0] == True:                  # Le train detect le signal
-                print("droit signal ok")
                 if Signal.etat(test_droite[1], "D") == True:    # Si le signal est vert
                     if Signal.time < pygame.time.get_ticks():
-                        print("ok")
                         train_droite.train[1][0] += 1
                         train_droite.go_train()
                         Signal.change_color(test_droite[1], "D")     # Change la couleur du signal
@@ -390,10 +386,8 @@ def main():
         if run: 
             test_gauche = train_gauche.detect_signal()
             if test_gauche[0] == True:
-                print("gauche signal ok")
                 if Signal.etat(test_gauche[1], "G") == True:
                     if Signal.time < pygame.time.get_ticks():
-                        print("ok")
                         train_gauche.train[1][0] -= 1
                         train_gauche.go_train()
                         Signal.change_color(test_gauche[1], "G")
