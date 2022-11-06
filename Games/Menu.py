@@ -1,10 +1,11 @@
 import pygame
 import math
 import sys
+import jeu
 
 
 # Initialisation des éléments pygame
-tailleEcran = (1375, 700)
+tailleEcran = (1350, 700)
 pygame.init()
 screen = pygame.display.set_mode(tailleEcran)
 pygame.display.set_caption("Paris Underground Services")
@@ -35,7 +36,11 @@ Vert = (0, 100, 60)
 Vert_clair = (130, 220, 115)
 Violet = (100, 0, 130)
 
+def fond():
+    """affiche l'image de fond"""
 
+    img = pygame.transform.scale(pygame.image.load("Images\menu.jpg"), tailleEcran)
+    screen.blit(img, (0, 0))
 
 
 def main():
@@ -49,6 +54,13 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_KP_ENTER:
+                    jeu.main()
+
+        fond()
 
         pygame.display.flip()  # Affichage Final
 

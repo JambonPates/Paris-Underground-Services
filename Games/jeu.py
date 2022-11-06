@@ -7,7 +7,7 @@ import collections
 import csv
 
 # Initialisation des éléments pygame
-tailleEcran = (1350, 700)
+tailleEcran = (1300, 700)
 pygame.init()
 screen = pygame.display.set_mode(tailleEcran)
 pygame.display.set_caption("Paris Underground Services")
@@ -82,50 +82,89 @@ class Train:
 
         self.run = True
 
-        # Self.train = (couleur, position, taille, nb de voyageurs, direction (jeu), direction (écran))
+        # Self.train = (couleur, position, taille, nb de voyageurs, direction (jeu), direction (écran), bouge(Vrai ou faux))
         self.train = [Rouge_coquelicot, self.pos, self.taille, self.voyageurs, self.dir, dir, self.run]
         
 
 
     def deplacer(self):
+        """Déplace le train"""
 
         if self.train[6]:
             if self.train[5] == "D":
-                
-                if self.train[1][0] != 510:
-                    self.train[1][0] += 0.25
+                print(self.train[1][0])
+                if self.train[1][0] != 515:
+                    self.train[1][0] += 0.5
                 else:
                     self.train[6] = False
-                    self.train[1][0] += 0.25
+                    self.train[1][0] += 0.5
                     self.tmps_arret = pygame.time.get_ticks() + random.randint(5000, 20000)
                 
                 
             elif self.train[5] == "G":
-                if self.train[1][0] != 510:
-                    self.train[1][0] -= 0.25
+                if self.train[1][0] != 505:
+                    self.train[1][0] -= 0.5
                 else:
                     self.train[6] = False
-                    self.train[1][0] -= 0.25
+                    self.train[1][0] -= 0.5
                     self.tmps_arret = pygame.time.get_ticks() + random.randint(5000, 15000)
 
         else:
             if self.tmps_arret <= pygame.time.get_ticks():
                 self.train[6] = True
 
-    def detect_signal(self):
-        """Permet de dire au signal quand il est franchit"""
 
-        if self.train[1][0] == (475 - self.taille[0]):
-            self.train[1][0] += 0.25
-            return (True, 0)
-        elif self.train[1][0] == (755 - self.taille[0]):
-            self.train[1][0] += 0.25
-            return (True, 1)
-        elif self.train[1][0] == (1080 - self.taille[0]):
-            self.train[1][0] += 0.25
-            return (True, 2)
+    def detect_signal(self):
+        """Permet de dire au train quand il est au niveau d'un signal"""
+
+        if self.train[5] == "D":
+            if self.train[1][0] == (475 - self.taille[0]):
+                # self.train[1][0] += 0.25
+                return (True, 0)
+            elif self.train[1][0] == (755 - self.taille[0]):
+                print("entre")
+                # self.train[1][0] += 0.25
+                return (True, 1)
+            elif self.train[1][0] == (1080 - self.taille[0]):
+                # self.train[1][0] += 0.25
+                return (True, 2)
+            else:
+                return (False, 0)
         
-        return False, 0
+
+        elif self.train[5] == "G":
+            if self.train[1][0] == (755):
+                # self.train[1][0] += 0.25
+                return (True, 1)
+            elif self.train[1][0] == (475):
+                # self.train[1][0] += 0.25
+                return (True, 0)
+            # elif self.train[1][0] == (1080):
+            #     # self.train[1][0] += 0.25
+            #     return (True, 2)
+
+            else:
+                return (False, 0)
+        else:
+                return (False, 0)
+
+
+    def stop_train(self):
+        """Arrete le train"""
+
+        if self.train[6] == True:
+            self.train[6] = False
+            self.tmps_arret = pygame.time.get_ticks() + 60000
+        else:
+            pass
+
+    def go_train(self):
+        """démarre le train"""
+
+        if self.train[6] == False:
+            self.train[6] = True
+        else:
+            pass
 
 
     
@@ -141,6 +180,7 @@ class signalisation():
         """constructeur"""
         
         self.signaux = []
+        self.time = pygame.time.get_ticks()
 
         # Ouverture du fichiez CSV pour positions et sens des signaux
         with open("Saves\signal_test.csv") as csvfile:
@@ -164,22 +204,71 @@ class signalisation():
             else: 
                 pass
     
-    def change_color(self, test) -> None:
+    def change_color(self, test, dir) -> None:
         """Change la couleur du feu au passage du train"""
 
-        # if test == 2:
-        #     self.signaux_droit[0][2] = True
-        #     self.signaux_droit[1][2] = True
-        if test > 0: 
-            if self.signaux_droit[test][2]:
-                self.signaux_droit[test][2] = not self.signaux_droit[test][2]
-                self.signaux_droit[test-1][2] = True
+        if dir == "D":
+            if test > 0: 
+                if self.signaux_droit[test][2]:
+                    self.signaux_droit[test][2] = not self.signaux_droit[test][2]
+                    self.signaux_droit[test-1][2] = True
+                    self.time = pygame.time.get_ticks() + random.randint(700, 1500)
+                    pass
+
+            elif test == -1:
+                self.signaux_droit[0][2] = False
+            elif test == -2:
+                self.signaux_droit[0][2] = True
+                self.time = pygame.time.get_ticks() + random.randint(700, 1500)
+            elif test == 0:
+                self.signaux_droit[test][2] = False
                 pass
 
+            elif test == -100:
+                for i in range(len(self.signaux_droit)):
+                    self.signaux_droit[i][2] = True
+                self.time = pygame.time.get_ticks() + random.randint(700, 1500)
 
-        elif test == 0:
-            self.signaux_droit[test][2] = False
-            pass
+        elif dir == "G":
+            if test < 1: 
+                if self.signaux_gauche[test][2]:
+                    self.signaux_gauche[test][2] = False
+                    self.signaux_gauche[test+1][2] = True
+                    self.time = pygame.time.get_ticks() + random.randint(700, 1500)
+                    pass
+
+            elif test == 1:
+                self.signaux_gauche[1][2] = False
+            # elif test == -2:
+            #     self.signaux_gauche[0][2] = True
+            #     self.time = pygame.time.get_ticks() + random.randint(700, 1500)
+            # elif test == 0:
+            #     self.signaux_gauche[test][2] = False
+
+            # elif test == -100:
+            #     for i in range(len(self.signaux_gauche)):
+            #         self.signaux_gauche[i][2] = True
+            #     self.time = pygame.time.get_ticks() + random.randint(700, 1500)
+
+
+    def etat(self, test, dir):
+        """renvoie l'état actuel du signal (vert ou rouge)"""
+
+        if dir == "D":
+            if self.signaux_droit[test][2] == False:
+                return False
+            elif self.signaux_droit[test][2] == True:
+                return True
+            else:
+                return False
+
+        if dir == "G":
+            if self.signaux_gauche[test][2] == False:
+                return False
+            elif self.signaux_gauche[test][2] == True:
+                return True
+            else:
+                return False
 
     
 
@@ -241,8 +330,8 @@ def main():
     run = False
     display = True
     HUD = Ecran()
-    train = Train("D")
-    train2 = Train("G")
+    train_droite = Train("D")
+    train_gauche = Train("G")
     Signal = signalisation()
     
     while True:
@@ -268,25 +357,56 @@ def main():
                     # tmps = pygame.time.get_ticks()
                     run = not run
 
-                if event.key == pygame.K_w:
-                    Signal.change_color(0)
+                if event.key == pygame.K_q:
+                    train_droite.go_train()
 
-                if event.key == pygame.K_x:
-                    Signal.change_color(1)
+                if event.key == pygame.K_s:
+                    train_droite.stop_train()
                 
                 if event.key == pygame.K_c:
-                    Signal.change_color(2)
+                    Signal.change_color(-1, "D")
+
+                if event.key == pygame.K_v:
+                    Signal.change_color(1, "D")
+
+                if event.key == pygame.K_w:
+                    Signal.change_color(-100, "D")
 
         if run:
-            train.deplacer()  
-            train2.deplacer() 
+            test_droite = train_droite.detect_signal()
+            if test_droite[0] == True:                  # Le train detect le signal
+                print("droit signal ok")
+                if Signal.etat(test_droite[1], "D") == True:    # Si le signal est vert
+                    if Signal.time < pygame.time.get_ticks():
+                        print("ok")
+                        train_droite.train[1][0] += 1
+                        train_droite.go_train()
+                        Signal.change_color(test_droite[1], "D")     # Change la couleur du signal
+                elif Signal.etat(test_droite[1], "D") == False:
+                    train_droite.stop_train()                       # Sinon il s'arrete et attend
+            else:
+                train_droite.deplacer()  
+
+        if run: 
+            test_gauche = train_gauche.detect_signal()
+            if test_gauche[0] == True:
+                print("gauche signal ok")
+                if Signal.etat(test_gauche[1], "G") == True:
+                    if Signal.time < pygame.time.get_ticks():
+                        print("ok")
+                        train_gauche.train[1][0] -= 1
+                        train_gauche.go_train()
+                        Signal.change_color(test_gauche[1], "G")
+                elif Signal.etat(test_gauche[1], "G") == False:
+                    train_gauche.stop_train()
+            else:
+                train_gauche.deplacer()  
+
+                
         if display:
             HUD.Affiche()
-            train.Affiche()
-            test = train.detect_signal()
-            if test[0]:
-                Signal.change_color(test[1])
-            train2.Affiche()
+            train_droite.Affiche()
+            train_gauche.Affiche()
             Signal.Afficher()
         
         pygame.display.flip()  # Affichage Final
