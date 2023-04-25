@@ -31,6 +31,7 @@ Bleu = (60, 140, 220)
 Bleu_fonce = (0, 85, 200)
 Gris = (20, 20, 20)
 Gris_clair = (125, 125, 125)
+Jaune = (242, 201, 49)
 Marron = (90, 35, 10)
 Noir = (0, 0, 0)
 Or = (211, 155,   0)
@@ -51,6 +52,8 @@ class Gestion:
         self.nb_voyageur_tot = 0
         self.nb_voyageurs_droite = 30
         self.nb_voyageurs_gauche = 30
+        self.dest_D = []
+        self.dest_G = []
         pass
 
 
@@ -65,13 +68,54 @@ class Gestion:
 
         self.solde -= montant
 
+
+    def nouvelle_dest(self, infos):
+        """Ajoute la destination du train à la pile des arrivées """
+
+        if infos[1] == "D":
+            self.dest_D.append(infos[0])
+        else: 
+            self.dest_G.append(infos[0])
+
+
+    def suppr_dest(self, infos):
+        """Ajoute la destination du train à la pile des arrivées """
+
+        if infos[0]:
+            if infos[1] == "D":
+                self.dest_D.pop(0)
+            else:
+                self.dest_G.pop(0)
+
+
+    def affichage_dest(self):
+        """Affiche les destination des prochains trains"""
+
+        if self.dest_D:
+            space = 275
+            barre = moyfont.render(" / ", 1, Jaune)
+            for element in self.dest_D:
+
+                dest = moyfont.render(element, 1, Jaune)
+                screen.blit(dest, ((space, 261)))
+                space += 155
+                screen.blit(barre, ((space, 261)))
+                space += 13
+
+
 class Train:
     """gestion des trains dans le jeu"""
 
     def __init__(self, dir, signaux) -> None:
         """Constructeur"""
 
-        self.dir = "Test"
+        self.dir = random.choice(["   MLV Chessy  ",
+                                  " Boissy st-Léger", 
+                                  "        Torcy  ", 
+                                  " Noisy le grand", 
+                                  " Sucy-Bonneuil ",
+                                  "Sans Voyageurs ",
+                                  "       Garage  "])
         
         self.taille = (230, 30)
         
@@ -82,12 +126,16 @@ class Train:
         else:
             pass
 
-        if self.dir == "Sans Voyageurs":
+        # Définition du nombre de voyageurs
+        if self.dir == "Sans Voyageurs ":
             self.voyageurs = 0
+        elif self.dir == "     Garage    ":
+             self.voyageurs = 0
         else:
             self.voyageurs = random.randint(1, 300)
 
         self.run = True
+        self.affiche_dest = False
 
         # Definition liste des positions (en X) des signaux 
         self.signaux = []
@@ -98,7 +146,7 @@ class Train:
            
 
         # Self.train = (couleur, position, taille, nb de voyageurs, direction (jeu), direction (écran), bouge(Vrai ou faux))
-        self.train = [Rouge_coquelicot, self.pos, self.taille, self.voyageurs, self.dir, dir, self.run]
+        self.train = [Rouge_coquelicot, self.pos, self.taille, self.voyageurs, self.dir, dir, self.run, self.affiche_dest]
 
         # Stationnement en gare 
         self.station = 515 # coordonnées en x arret station
@@ -133,7 +181,16 @@ class Train:
                 self.train[1][0] += 0.5
                 self.time_station = False
                 self.train[6] = True
+                self.train[7] = False
                 pass
+
+        
+    def death(self):
+        """Renvoie True si le train est en bout de parcours pour le supprimer"""
+
+        if self.train[1][0] >= 1500:
+            return True
+        return False
              
                 
 
@@ -142,12 +199,17 @@ class Train:
         
         if self.train[5] == "D":
 
+            # Afficher destination en gare 
+            # if (self.train[1][0] + self.taille[0]) == 192:
+            #     self.train[7] = True
+            
+            # Vérification des signaux
             for test in range(len(self.signaux)):
                 if (self.train[1][0] + self.taille[0]) == self.signaux[test]:
                     # self.train[6] = False
                     return (True, test, "D")   
-            return (False, 0, "D")
-       
+                
+            return (False, 0, "D")   
 
         elif self.train[5] == "G":
 
@@ -155,6 +217,15 @@ class Train:
                 if self.train[1][0] == test:
                     return (True, (len(self.signaux) - test), "G")
             return (False, 0, "G")
+        
+
+    def detect_station(self):
+        """renvoie True si train quitte le station"""
+
+        if (self.train[1][0]) == (self.station  + self.taille[0] - 10):
+            return (True, self.train[5])
+        else: 
+            return (False, self.train[5])
 
 
     def run_train(self, running): 
@@ -174,6 +245,12 @@ class Train:
 
         # Affichage du train
         pygame.draw.rect(screen, self.train[0], (self.train[1], self.train[2]), 0, 5)
+
+    def destination(self):
+        """Envoie la destination du train => ("Text", "G ou D")"""
+
+        return (self.dir, self.train[5])
+
 
 class signalisation():
     """gestion et affichage du systèpme de signalisation dans le jeu"""
@@ -334,7 +411,20 @@ class Ecran:
     def interface(self) -> None:
         """dessine l'interface utilisable par le joueur"""
 
+        # Prochains trains
+        pygame.draw.rect(screen, Gris, ((0, 250), (tailleEcran[0], 40)))
+        pygame.draw.line(screen, Blanc_light, (0, 250), (tailleEcran[0],250), 5)
         pygame.draw.line(screen, Blanc_light, (0, 290), (tailleEcran[0],290), 5)
+
+        # logo RER A
+        pygame.draw.rect(screen, Rouge_coquelicot, ((65, 257), (26, 26)), 0, 8)
+        rer = moyfont.render("RER", 1, Blanc)
+        screen.blit(rer, ((20, 261)))
+        logo = moyfont.render("A", 1, Blanc)
+        screen.blit(logo, ((70, 261)))
+        
+
+        # interface jeu
         pygame.draw.rect(screen, Gris_clair, ((20, 305), (tailleEcran[0] - 40, tailleEcran[1] - 325)), 0, 15)
         pygame.draw.line(screen, Gris, (250, 305), (250, tailleEcran[0] - 40), 3)
         pygame.draw.line(screen, Gris, (20, 425), (250, 425), 3)
@@ -355,6 +445,9 @@ class Ecran:
         screen.blit(horloge, (72, 570))
         time = moyfont.render("--:--", 1, Noir)
         screen.blit(time, (((270-20)/2)-10, 630))
+        pro_train = moyfont.render("Prochain Train : ", 1, Noir)
+        screen.blit(pro_train, ((100, 261)))
+        
         
 
 
@@ -379,6 +472,7 @@ def main():
 
     if dev:
         liste_train.append(Train("D", Signal.liste_signaux()))
+        gestion.nouvelle_dest(liste_train[0].destination())
         run = True
     
 
@@ -407,9 +501,8 @@ def main():
                     #     train_droite.run_train(True)
                     
                     if event.key == pygame.K_b:
-                        print("ok")
-                        train_droite = Train("G", Signal.liste_signaux())
-                        liste_train.append(train_droite)
+                        liste_train.pop(0)
+                        gestion.suppr_dest((True, "D"))
 
                     if event.key == pygame.K_v:
                         Signal.change_color(0, "D")
@@ -420,7 +513,11 @@ def main():
                     if event.key == pygame.K_n:
                         run = True
                         train_droite = Train("D", Signal.liste_signaux())
+                        gestion.nouvelle_dest(train_droite.destination())
                         liste_train.append(train_droite)
+
+                    # if event.key == pygame.K_p:
+                    #     print(liste_train)
 
         
         if not bool(liste_train):
@@ -439,7 +536,21 @@ def main():
             if run:
                 for train in liste_train:
                     train.Affiche()
-            
+                    train.destination()
+                    gestion.suppr_dest(train.detect_station())
+                
+                # Supression des trains en fin de parcours ##
+                supp = []                                   #
+                for véhicule in range(len(liste_train)):    # 
+                    if liste_train[véhicule].death():       #
+                        supp.append(véhicule)               #
+                                                            #
+                if supp:                                    #
+                    for i in supp:                          #
+                        liste_train.pop(supp.pop(i))        #
+                #############################################                 
+
+            gestion.affichage_dest()
         
         pygame.display.flip()  # Affichage Final
 

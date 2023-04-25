@@ -11,5 +11,13 @@ monnaie (dont l'utilité sera à définir) et proposer d'autres stations plus gr
 Update (0.1 - 0.3)
 Système de déplacement des trains ainsi que système de signalisation opérationnels.
 
+Update (0.4)
+Création d'une interface provisoire et mise en place des premiers éléments de gestion. 
+
+Update (0.5)
+Remplacement et Fiabilisation du système de déplacement automatique des trains.
+
+Update (0.6)
+Système d'annonce des prochains trains et optimisation des déplacements.
 
 

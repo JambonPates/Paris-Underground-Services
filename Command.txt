@@ -1,0 +1,12 @@
+Liste des touches 
+---------------------------------------------
+
+B - Supprimer le premier train
+N - Ajouter un train
+W - Passe tous feux au vert
+
+
+---------------------------------------------
+Developpement  
+
+V - Change couleur premier feu en Rouge 
